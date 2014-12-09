@@ -57,9 +57,14 @@ test("jQuery()", function() {
 	equal( jQuery(undefined).length, 0, "jQuery(undefined) === jQuery([])" );
 	equal( jQuery(null).length, 0, "jQuery(null) === jQuery([])" );
 	equal( jQuery("").length, 0, "jQuery('') === jQuery([])" );
-	equal( jQuery("#").length, 0, "jQuery('#') === jQuery([])" );
-
 	equal( jQuery(obj).selector, "div", "jQuery(jQueryObj) == jQueryObj" );
+
+	// Invalid #id goes to Sizzle which will throw an error (gh-1682)
+	try {
+		jQuery( "#" );
+	} catch ( e ) {
+		ok( true, "Threw an error on #id with no id" );
+	}
 
 	// can actually yield more than one, when iframes are included, the window is an array as well
 	equal( jQuery(window).length, 1, "Correct number of elements generated for jQuery(window)" );
@@ -216,24 +221,40 @@ test( "globalEval with 'use strict'", function() {
 	equal( window.strictEvalTest, 1, "Test variable declarations are global (strict mode)" );
 });
 
-test("noConflict", function() {
-	expect(7);
+test( "globalEval execution after script injection (#7862)", 1, function() {
+	var now,
+		script = document.createElement( "script" );
 
-	var $$ = jQuery;
+	script.src = "data/longLoadScript.php?sleep=2";
 
-	strictEqual( jQuery, jQuery.noConflict(), "noConflict returned the jQuery object" );
-	strictEqual( window["jQuery"], $$, "Make sure jQuery wasn't touched." );
-	strictEqual( window["$"], original$, "Make sure $ was reverted." );
+	now = jQuery.now();
+	document.body.appendChild( script );
 
-	jQuery = $ = $$;
-
-	strictEqual( jQuery.noConflict(true), $$, "noConflict returned the jQuery object" );
-	strictEqual( window["jQuery"], originaljQuery, "Make sure jQuery was reverted." );
-	strictEqual( window["$"], original$, "Make sure $ was reverted." );
-	ok( $$().pushStack([]), "Make sure that jQuery still works." );
-
-	window["jQuery"] = jQuery = $$;
+	jQuery.globalEval( "var strictEvalTest = " + jQuery.now() + ";");
+	ok( window.strictEvalTest - now < 500, "Code executed synchronously" );
 });
+
+// This is not run in AMD mode
+if (jQuery.noConflict) {
+	test("noConflict", function() {
+		expect(7);
+
+		var $$ = jQuery;
+
+		strictEqual( jQuery, jQuery.noConflict(), "noConflict returned the jQuery object" );
+		strictEqual( window["jQuery"], $$, "Make sure jQuery wasn't touched." );
+		strictEqual( window["$"], original$, "Make sure $ was reverted." );
+
+		jQuery = $ = $$;
+
+		strictEqual( jQuery.noConflict(true), $$, "noConflict returned the jQuery object" );
+		strictEqual( window["jQuery"], originaljQuery, "Make sure jQuery was reverted." );
+		strictEqual( window["$"], original$, "Make sure $ was reverted." );
+		ok( $$().pushStack([]), "Make sure that jQuery still works." );
+
+		window["jQuery"] = jQuery = $$;
+	});
+}
 
 test("trim", function() {
 	expect(13);
