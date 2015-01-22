@@ -2447,3 +2447,41 @@ test( "Validate creation of multiple quantities of certain elements (#13818)", 4
 		});
 	});
 });
+
+test( "Make sure col element is appended correctly", function() {
+	expect( 1 );
+
+	var table = jQuery( "<table cellpadding='0'><tr><td>test</td></tr></table>" );
+
+	jQuery( table ).appendTo( "#qunit-fixture" );
+
+	jQuery( "<col width='150'/>" ).prependTo( table );
+
+	strictEqual( table.find( "td" ).width(), 150 );
+});
+
+asyncTest( "Insert script with data-URI (gh-1887)", 1, function() {
+	Globals.register( "testFoo" );
+	Globals.register( "testSrcFoo" );
+
+	var script = document.createElement( "script" ),
+		fixture = document.getElementById( "qunit-fixture" );
+
+	script.src = "data:text/javascript,testSrcFoo = 'foo';";
+
+	fixture.appendChild( script );
+
+	jQuery( fixture ).append( "<script src=\"data:text/javascript,testFoo = 'foo';\"></script>" );
+
+	setTimeout(function() {
+		if ( window[ "testSrcFoo" ] === "foo" ) {
+			strictEqual( window[ "testFoo" ], window[ "testSrcFoo" ], "data-URI script executed" );
+
+		} else {
+			ok( true, "data-URI script is not supported by this environment" );
+		}
+
+		start();
+	}, 100 );
+});
+>>>>>>> 0ea342a... Manipulation: simplify html wrappers
