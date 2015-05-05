@@ -1174,45 +1174,45 @@ test("animate with per-property easing", function(){
 test("animate with CSS shorthand properties", function(){
 	expect(11);
 
-	var _default_count = 0,
-		_special_count = 0,
+	var easeAnimation_count = 0,
+		easeProperty_count = 0,
 		propsBasic = { "padding": "10 20 30" },
-		propsSpecial = { "padding": [ "1 2 3", "_special" ] };
+		propsSpecial = { "padding": [ "1 2 3", "propertyScope" ] };
 
-	jQuery.easing._default = function(p) {
+	jQuery.easing.animationScope = function(p) {
 		if ( p >= 1 ) {
-			_default_count++;
+			easeAnimation_count++;
 		}
 		return p;
 	};
 
-	jQuery.easing._special = function(p) {
+	jQuery.easing.propertyScope = function(p) {
 		if ( p >= 1 ) {
-			_special_count++;
+			easeProperty_count++;
 		}
 		return p;
 	};
 
 	jQuery("#foo")
-		.animate( propsBasic, 200, "_default", function() {
+		.animate( propsBasic, 200, "animationScope", function() {
 			equal( this.style.paddingTop, "10px", "padding-top was animated" );
 			equal( this.style.paddingLeft, "20px", "padding-left was animated" );
 			equal( this.style.paddingRight, "20px", "padding-right was animated" );
 			equal( this.style.paddingBottom, "30px", "padding-bottom was animated" );
-			equal( _default_count, 4, "per-animation default easing called for each property" );
-			_default_count = 0;
+			equal( easeAnimation_count, 4, "per-animation default easing called for each property" );
+			easeAnimation_count = 0;
 		})
-		.animate( propsSpecial, 200, "_default", function() {
+		.animate( propsSpecial, 200, "animationScope", function() {
 			equal( this.style.paddingTop, "1px", "padding-top was animated again" );
 			equal( this.style.paddingLeft, "2px", "padding-left was animated again" );
 			equal( this.style.paddingRight, "2px", "padding-right was animated again" );
 			equal( this.style.paddingBottom, "3px", "padding-bottom was animated again" );
-			equal( _default_count, 0, "per-animation default easing not called" );
-			equal( _special_count, 4, "special easing called for each property" );
+			equal( easeAnimation_count, 0, "per-animation default easing not called" );
+			equal( easeProperty_count, 4, "special easing called for each property" );
 
 			jQuery(this).css("padding", "0");
-			delete jQuery.easing._default;
-			delete jQuery.easing._special;
+			delete jQuery.easing.animationScope;
+			delete jQuery.easing.propertyScope;
 		});
 		this.clock.tick( 400 );
 });
@@ -2181,4 +2181,55 @@ test( "Respect display value on inline elements (#14824)", 2, function() {
 	clock.tick( 800 );
 });
 
+<<<<<<< HEAD
+=======
+test( "Animation should go to its end state if document.hidden = true", 1, function() {
+	var height;
+	if ( Object.defineProperty ) {
+
+		// Can't rewrite document.hidden property if its host property
+		try {
+			Object.defineProperty( document, "hidden", {
+				get: function() {
+					return true;
+				}
+			});
+		} catch ( e ) {}
+	} else {
+		document.hidden = true;
+	}
+
+	if ( document.hidden ) {
+		height = jQuery( "#qunit-fixture" ).animate({ height: 500 } ).height();
+
+		equal( height, 500, "Animation should happen immediately if document.hidden = true" );
+		jQuery( document ).removeProp( "hidden" );
+
+	} else {
+		ok( true, "Can't run the test since we can't reproduce correct environment for it" );
+	}
+});
+
+test( "jQuery.easing._default (#2218)", 2, function() {
+	jQuery( "#foo" )
+		.animate({ width: "5px" }, {
+			duration: 5,
+			start: function( anim ) {
+				equal( anim.opts.easing, jQuery.easing._default,
+					"anim.opts.easing should be equal to jQuery.easing._default when the easing argument is not given" );
+			}
+		})
+		.animate({ height: "5px" }, {
+			duration: 5,
+			easing: "linear",
+			start: function( anim ) {
+				equal( anim.opts.easing, "linear",
+					"anim.opts.easing should be equal to the easing argument" );
+			}
+		})
+		.stop();
+	this.clock.tick( 25 );
+});
+
+>>>>>>> 5f2ea40... Effects: set default easing using jQuery.easing._default
 })();
