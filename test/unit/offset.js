@@ -50,19 +50,24 @@ test("empty set", function() {
 test("object without getBoundingClientRect", function() {
 	expect(2);
 
-	// Simulates a browser without gBCR on elements, we just want to return 0,0
-	var result = jQuery({ ownerDocument: document }).offset();
-	equal( result.top, 0, "Check top" );
-	equal( result.left, 0, "Check left" );
+	var result = jQuery( document.createElement( "div" ) ).offset();
+	// These tests are solely for master/compat consistency
+	// Retrieving offset on disconnected/hidden elements is not officially
+	// valid input, but will return zeros for back-compat
+	equal( result.top, 0, "Retrieving offset on disconnected elements returns zeros (gh-2310)" );
+	equal( result.left, 0, "Retrieving offset on disconnected elements returns zeros (gh-2310)" );
 });
 
-test("disconnected node", function() {
-	expect(2);
+test("disconnected element", function() {
+	expect( 2 );
 
-	var result = jQuery( document.createElement("div") ).offset();
+	var result = jQuery( document.createElement( "div" ) ).offset();
 
-	equal( result.top, 0, "Check top" );
-	equal( result.left, 0, "Check left" );
+	// These tests are solely for master/compat consistency
+	// Retrieving offset on disconnected/hidden elements is not officially
+	// valid input, but will return zeros for back-compat
+	equal( result.top, 0, "Retrieving offset on disconnected elements returns zeros (gh-2310)" );
+	equal( result.left, 0, "Retrieving offset on disconnected elements returns zeros (gh-2310)" );
 });
 
 testIframe("offset/absolute", "absolute", function($, iframe) {
@@ -398,13 +403,19 @@ testIframe("offset/table", "table", function( $ ) {
 });
 
 testIframe("offset/scroll", "scroll", function( $, win ) {
-	expect(28);
+	expect( 30 );
 
 	equal( $("#scroll-1").offset().top, 7, "jQuery('#scroll-1').offset().top" );
 	equal( $("#scroll-1").offset().left, 7, "jQuery('#scroll-1').offset().left" );
 
 	equal( $("#scroll-1-1").offset().top, 11, "jQuery('#scroll-1-1').offset().top" );
 	equal( $("#scroll-1-1").offset().left, 11, "jQuery('#scroll-1-1').offset().left" );
+
+	// These tests are solely for master/compat consistency
+	// Retrieving offset on disconnected/hidden elements is not officially
+	// valid input, but will return zeros for back-compat
+	equal( $("#hidden").offset().top, 0, "Hidden elements do not subtract scroll" );
+	equal( $("#hidden").offset().left, 0, "Hidden elements do not subtract scroll" );
 
 	// scroll offset tests .scrollTop/Left
 	equal( $("#scroll-1").scrollTop(), 5, "jQuery('#scroll-1').scrollTop()" );
